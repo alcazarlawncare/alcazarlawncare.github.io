@@ -206,7 +206,7 @@
       <h3>Get Your Free Quote</h3>
       <p class="sub">Tell us about your yard — We reply the same day.</p>
       <!-- Formspree form -> alcazarlandscaping06@gmail.com -->
-      <form action="https://formspree.io/f/mgobveow" method="POST">
+      <form action="https://forms.stricklysoft.workers.dev/alcazar-lawncare" method="POST">
         <input type="hidden" name="_subject" value="New Quote Request from Alcazar Lawncare website" />
         <input type="text" name="_gotcha" style="display:none" />
         <label>Name</label>
@@ -329,6 +329,46 @@ lb.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx
 <script>
 function toggleNav(){var h=document.getElementById('hamburger'),m=document.getElementById('mobnav');var o=m.classList.toggle('open');h.classList.toggle('open',o);h.setAttribute('aria-expanded',o);}
 function closeNav(){document.getElementById('mobnav').classList.remove('open');var h=document.getElementById('hamburger');h.classList.remove('open');h.setAttribute('aria-expanded','false');}
+</script>
+<!-- Quote thank-you popup -->
+<div id="ty-modal" role="dialog" aria-modal="true" aria-label="Message sent" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(16,24,32,.55);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:36px 28px 30px;text-align:center;position:relative;box-shadow:0 24px 70px rgba(0,0,0,.28);">
+    <button type="button" id="ty-close" aria-label="Close" style="position:absolute;top:8px;right:13px;border:0;background:none;font-size:28px;line-height:1;color:#9aa4b0;cursor:pointer;">&times;</button>
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1f8a4c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" opacity="0.28"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+    <h3 style="margin:14px 0 6px;">Thank you!</h3>
+    <p class="sub" style="margin:0 0 20px;color:#5a6776;">Your request has been sent &mdash; we'll reply the same day.</p>
+    <button type="button" id="ty-ok" style="background:#1f8a4c;color:#fff;border:0;border-radius:9px;padding:12px 30px;font-size:1rem;font-weight:700;cursor:pointer;">Close</button>
+  </div>
+</div>
+<script>
+/* Quote form: AJAX submit -> closeable thank-you popup (no page navigation).
+   Falls back to the native post + worker thank-you page if JS is unavailable. */
+(function(){
+  var card=document.getElementById('quote');
+  var form=card&&card.querySelector('form');
+  var modal=document.getElementById('ty-modal');
+  if(!form||!modal)return;
+  function open(){modal.style.display='flex';}
+  function close(){modal.style.display='none';}
+  document.getElementById('ty-close').addEventListener('click',close);
+  document.getElementById('ty-ok').addEventListener('click',close);
+  modal.addEventListener('click',function(e){if(e.target===modal)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.style.display==='flex')close();});
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var hp=form.querySelector('input[name=_gotcha]');if(hp&&hp.value)return;
+    var btn=form.querySelector('button[type=submit]');var label=btn?btn.textContent:'';
+    if(btn){btn.disabled=true;btn.textContent='Sending…';}
+    fetch(form.action,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)})
+      .then(function(r){if(!r.ok)throw r;return r.json();})
+      .then(function(){form.reset();if(btn){btn.disabled=false;btn.textContent=label;}open();})
+      .catch(function(){
+        if(btn){btn.disabled=false;btn.textContent=label;}
+        var n=form.querySelector('.fnote');
+        if(n){n.textContent='Something went wrong — please call us or try again.';n.style.color='#c0392b';}
+      });
+  });
+})();
 </script>
 </body>
 </html>
